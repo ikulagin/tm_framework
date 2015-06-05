@@ -12,6 +12,11 @@ struct hashtable_s {
     hash_fnc hash;
 };
 
+//Declaration section
+__attribute__((transaction_safe))
+size_t tm_strlen(const char *s);
+//end
+
 hashtable_t *tm_hashtable_alloc(long init_num_bucks, hash_fnc hash)
 {
     hashtable_t *tmp = NULL;
@@ -37,6 +42,7 @@ hashtable_t *tm_hashtable_alloc(long init_num_bucks, hash_fnc hash)
     return tmp;
 }
 
+__attribute__((transaction_safe))
 void tm_hashtable_free(hashtable_t *ht_ptr)
 {
     for (int i = 0; i < ht_ptr->num_buckets; i++) {
@@ -49,12 +55,13 @@ void tm_hashtable_free(hashtable_t *ht_ptr)
     free(ht_ptr);
 }
 
+__attribute__((transaction_safe))
 bool tm_hashtable_insert (hashtable_t *ht_ptr, void *key, void *data)
 {
     unsigned long buck_id = ht_ptr->hash(key) % ht_ptr->num_buckets;
 
     ht_ptr->size++;
-    list_insert(ht_ptr->buckets[buck_id], data, strlen(data));
+    list_insert(ht_ptr->buckets[buck_id], data, tm_strlen(data));
 
     return true;
 }
@@ -67,3 +74,17 @@ void tm_hashtable_print(hashtable_t *ht_ptr)
         list_print(ht_ptr->buckets[i]);
     }
 }
+
+__attribute__((transaction_safe))
+size_t tm_strlen(const char *s)
+{
+    char *str = (char *)s;
+    char c;
+    size_t size = 0;
+
+    while((c = *str++) != '\0')
+        size++;
+
+    return size;
+}
+

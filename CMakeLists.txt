@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8)      # Проверка версии CMake.
 
 project(testing_thread_pool)             # Название проекта
 #set(CMAKE_C_COMPILER  "/home/ikulagin/workspace/gcc-5.0/bin/gcc")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread -std=gnu1x -Wall")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread -std=gnu1x -Wall -fgnu-tm")
 
 set(SOURCE_EXE 1.c)                      # Установка переменной со списком исходников для исполняемого файла
 

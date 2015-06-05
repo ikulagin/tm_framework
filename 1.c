@@ -38,6 +38,7 @@ void hello_from_thread(void *arg)
     }
 }
 
+__attribute__((transaction_safe))
 unsigned long hash(const void *key)
 {
     unsigned long hash_val = 0;
@@ -54,7 +55,7 @@ unsigned long hash(const void *key)
 int main(int argc, char **argv)
 {
     thread_pool_t *pool = thread_pool_init(atoi(argv[1]));
-    global_ht = tm_hashtable_alloc(10, hash);
+    global_ht = tm_hashtable_alloc(100, hash);
 
     pool_startup(pool);
 

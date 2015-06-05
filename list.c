@@ -17,7 +17,9 @@ struct list_s {
 };
 
 // Declaration section
+__attribute__((transaction_safe))
 list_node_t *list_node_alloc(void *data, size_t data_size);
+__attribute__((transaction_safe))
 void list_node_free(list_node_t *node_ptr);
 // End
 
@@ -35,23 +37,26 @@ list_t *list_alloc()
     return tmp;
 }
 
+__attribute__((transaction_safe))
 list_node_t *list_node_alloc(void *data, size_t data_size)
 {
     list_node_t *tmp = NULL;
 
     if ((tmp = malloc(sizeof(list_node_t))) == NULL) {
-        exit(EXIT_FAILURE);
+        return NULL;
     }
     tmp->next = NULL;
 
     if ((tmp->dataPtr = malloc(data_size)) == NULL) {
-        exit(EXIT_FAILURE);
+        free(tmp);
+        return NULL;
     }
     memcpy(tmp->dataPtr, data, data_size);
     
     return tmp;
 }
 
+__attribute__((transaction_safe))
 bool list_insert(list_t *list_ptr, void *data, size_t data_size)
 {
     list_node_t *current = list_node_alloc(data, data_size);
@@ -73,6 +78,7 @@ void list_print(list_t *list_ptr)
     printf("]\n");
 }
 
+__attribute__((transaction_safe))
 void list_node_free(list_node_t *node_ptr)
 {
     if (node_ptr != NULL) {
@@ -83,6 +89,7 @@ void list_node_free(list_node_t *node_ptr)
     }
 }
 
+__attribute__((transaction_safe))
 void list_free(list_t *list_ptr)
 {
     list_node_t *node_ptr = list_ptr->head;
@@ -92,3 +99,4 @@ void list_free(list_t *list_ptr)
     list_ptr->size = 0;
     free(list_ptr);
 }
+
