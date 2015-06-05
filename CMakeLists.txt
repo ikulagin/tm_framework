@@ -10,10 +10,12 @@ set(SOURCE_EXE 1.c)                      # Установка переменно
 
 set(SOURCE_THPOOL_LIB thread_pool.c)            # Тоже самое, но для библиотеки
 set(SOURCE_TMHASHT_LIB hashtable.c)
+set(SOURCE_TMLIST_LIB list.c)
 
 add_library(thread_pool STATIC ${SOURCE_THPOOL_LIB})    # Создание статической библиотеки с именем foo
 add_library(tm_hashtable STATIC ${SOURCE_TMHASHT_LIB})    # Создание статической библиотеки с именем foo
+add_library(tm_list STATIC ${SOURCE_TMLIST_LIB})    # Создание статической библиотеки с именем foo
 
 add_executable(1.out ${SOURCE_EXE})      # Создает исполняемый файл с именем main
 
-target_link_libraries(1.out thread_pool tm_hashtable) # Линковка программы с библиотекой
+target_link_libraries(1.out thread_pool tm_hashtable tm_list) # Линковка программы с библиотекой

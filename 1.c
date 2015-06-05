@@ -54,7 +54,7 @@ unsigned long hash(const void *key)
 int main(int argc, char **argv)
 {
     thread_pool_t *pool = thread_pool_init(atoi(argv[1]));
-    global_ht = tm_hashtable_alloc(100, hash);
+    global_ht = tm_hashtable_alloc(10, hash);
 
     pool_startup(pool);
 
