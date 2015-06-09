@@ -78,6 +78,19 @@ void list_print(list_t *list_ptr)
     printf("]\n");
 }
 
+long list_total_size(list_t *list_ptr)
+{
+    long total_size = 0;
+
+    for (list_node_t *ptr = list_ptr->head; ptr != NULL; ptr = ptr->next)
+        total_size++;
+
+    if (total_size != list_ptr->size)
+        printf("warn: the size is not same %ld != %ld\n", total_size, list_ptr->size);
+    
+    return total_size;
+}
+
 __attribute__((transaction_safe))
 void list_node_free(list_node_t *node_ptr)
 {

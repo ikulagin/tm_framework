@@ -1,12 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 #include "thread_pool.h"
 #include "hashtable.h"
 
+#define timer_t struct timeval
+#define timer_read(t) gettimeofday( &(t), NULL);
+#define timer_diff_usec(start, stop) \
+    (((double)(stop.tv_sec * 1000000.0)  + (double)(stop.tv_usec)) - \
+     ((double)(start.tv_sec * 1000000.0) + (double)(start.tv_usec ))) 
+
 enum {
-    NUM_WORDS = 1024,
+    NUM_WORDS = 10240,
     LENGTH_WORDS = 10,
 };
 
@@ -26,15 +33,14 @@ void rand_str(char *dest, size_t length) {
 
 void hello_from_thread(void *arg)
 {
-    long id = get_thread_id();
+    //    long id = get_thread_id();
     char array_words[NUM_WORDS][LENGTH_WORDS];
-
-    printf("Hello from thread %ld\n", id);
 
     for (int i = 0; i < NUM_WORDS; i++) {
         rand_str(array_words[i], LENGTH_WORDS);
-        printf("array_words[%d] = [%s]\n", i, array_words[i]);
-        tm_hashtable_insert(global_ht, array_words[i], array_words[i]);
+        __transaction_atomic {
+            tm_hashtable_insert(global_ht, array_words[i], array_words[i]);
+        }
     }
 }
 
@@ -54,15 +60,23 @@ unsigned long hash(const void *key)
 
 int main(int argc, char **argv)
 {
+    timer_t start, stop;
     thread_pool_t *pool = thread_pool_init(atoi(argv[1]));
-    global_ht = tm_hashtable_alloc(100, hash);
+    global_ht = tm_hashtable_alloc(10, hash);
 
     pool_startup(pool);
-
+    
+    timer_read(start);
     run_task(pool, hello_from_thread);
+    timer_read(stop);
 
     pool_shutdown_thread(pool);
-    tm_hashtable_print(global_ht);
+    //    tm_hashtable_print(global_ht);
+    long total_size = tm_hashtable_total_size(global_ht);
+    printf("The status of test is %s\n",
+           (total_size == atoi(argv[1]) * NUM_WORDS) ? "true" : "false");
+    printf("The hashtable size is %ld\n", total_size);
+    printf("Total time: %f\n", timer_diff_usec(start, stop));
 
     thread_pool_finalize(pool);
     return 0;

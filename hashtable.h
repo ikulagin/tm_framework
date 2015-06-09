@@ -10,3 +10,5 @@ __attribute__((transaction_safe))
 bool tm_hashtable_insert (hashtable_t *ht_ptr, void *key, void *data);
 
 void tm_hashtable_print(hashtable_t *ht_ptr);
+long tm_hashtable_total_size(hashtable_t *ht_ptr);
+

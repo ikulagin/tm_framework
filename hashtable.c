@@ -75,6 +75,17 @@ void tm_hashtable_print(hashtable_t *ht_ptr)
     }
 }
 
+long tm_hashtable_total_size(hashtable_t *ht_ptr)
+{
+    long total_size = 0;
+
+    for (int i = 0; i < ht_ptr->num_buckets; i++) {
+        total_size += list_total_size(ht_ptr->buckets[i]);
+    }
+
+    return total_size;
+}
+
 __attribute__((transaction_safe))
 size_t tm_strlen(const char *s)
 {
