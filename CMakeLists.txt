@@ -4,18 +4,29 @@ cmake_minimum_required(VERSION 2.8)      # Проверка версии CMake.
 
 project(testing_thread_pool)             # Название проекта
 #set(CMAKE_C_COMPILER  "/home/ikulagin/workspace/gcc-5.0/bin/gcc")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread -std=gnu1x -Wall -fgnu-tm")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread -std=gnu1x -Wall -fgnu-tm -I${CMAKE_CURRENT_SOURCE_DIR}")
 
-set(SOURCE_EXE 1.c)                      # Установка переменной со списком исходников для исполняемого файла
+set(SOURCE_TM_EXE 1_tm.c)                      # Установка переменной со списком исходников для исполняемого файла
+set(SOURCE_MUTEX_EXE
+  mutex/1_mutex.c)             # Установка переменной со списком исходников для исполняемого файла
 
-set(SOURCE_THPOOL_LIB thread_pool.c)            # Тоже самое, но для библиотеки
+set(SOURCE_THPOOL_LIB thread_pool.c)        # Тоже самое, но для библиотеки
 set(SOURCE_TMHASHT_LIB hashtable.c)
+set(SOURCE_MUTEX_HASHT_LIB 
+  mutex/hashtable_mutex.c)
 set(SOURCE_TMLIST_LIB list.c)
+set(SOURCE_MUTEXLIST_LIB
+  mutex/list_mutex.c)
+
 
 add_library(thread_pool STATIC ${SOURCE_THPOOL_LIB})    # Создание статической библиотеки с именем foo
 add_library(tm_hashtable STATIC ${SOURCE_TMHASHT_LIB})    # Создание статической библиотеки с именем foo
+add_library(mutex_hashtable STATIC ${SOURCE_MUTEX_HASHT_LIB})    # Создание статической библиотеки с именем foo
 add_library(tm_list STATIC ${SOURCE_TMLIST_LIB})    # Создание статической библиотеки с именем foo
+add_library(mutex_list STATIC ${SOURCE_MUTEXLIST_LIB})    # Создание статической библиотеки с именем foo
 
-add_executable(1.out ${SOURCE_EXE})      # Создает исполняемый файл с именем main
+add_executable(1_mutex.out ${SOURCE_MUTEX_EXE}) # Создает исполняемый файл с именем main
+add_executable(1_tm.out ${SOURCE_TM_EXE})       # Создает исполняемый файл с именем main
 
-target_link_libraries(1.out thread_pool tm_hashtable tm_list) # Линковка программы с библиотекой
+target_link_libraries(1_tm.out thread_pool tm_hashtable tm_list) # Линковка программы с библиотекой
+target_link_libraries(1_mutex.out thread_pool mutex_hashtable mutex_list) # Линковка программы с библиотекой
