@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8)      # Проверка версии CMake.
 
 project(testing_thread_pool)             # Название проекта
 #set(CMAKE_C_COMPILER  "/home/ikulagin/workspace/gcc-5.0/bin/gcc")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread -std=gnu1x -Wall -fgnu-tm -I${CMAKE_CURRENT_SOURCE_DIR}")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread -std=gnu1x -Wall -I${CMAKE_CURRENT_SOURCE_DIR}")
 
 set(SOURCE_TM_EXE 1_tm.c)                      # Установка переменной со списком исходников для исполняемого файла
 set(SOURCE_MUTEX_EXE
@@ -28,5 +28,8 @@ add_library(mutex_list STATIC ${SOURCE_MUTEXLIST_LIB})    # Создание с�
 add_executable(1_mutex.out ${SOURCE_MUTEX_EXE}) # Создает исполняемый файл с именем main
 add_executable(1_tm.out ${SOURCE_TM_EXE})       # Создает исполняемый файл с именем main
 
-target_link_libraries(1_tm.out thread_pool tm_hashtable tm_list) # Линковка программы с библиотекой
+set_target_properties(1_tm.out PROPERTIES LINK_FLAGS -fgnu-tm COMPILE_FLAGS -fgnu-tm)
+set_source_files_properties(${SOURCE_TMLIST_LIB} PROPERTIES COMPILE_FLAGS -fgnu-tm)
+set_source_files_properties(${SOURCE_TMHASHT_LIB} PROPERTIES COMPILE_FLAGS -fgnu-tm)
 target_link_libraries(1_mutex.out thread_pool mutex_hashtable mutex_list) # Линковка программы с библиотекой
+target_link_libraries(1_tm.out thread_pool tm_hashtable tm_list) # Линковка программы с библиотекой
