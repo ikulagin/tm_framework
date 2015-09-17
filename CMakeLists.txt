@@ -18,6 +18,7 @@ set(SOURCE_TMLIST_LIB list.c)
 set(SOURCE_MUTEXLIST_LIB
   mutex/list_mutex.c)
 
+link_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(thread_pool STATIC ${SOURCE_THPOOL_LIB})    # Создание статической библиотеки с именем foo
 add_library(tm_hashtable STATIC ${SOURCE_TMHASHT_LIB})    # Создание статической библиотеки с именем foo

@@ -12,10 +12,19 @@
     (((double)(stop.tv_sec * 1000000.0)  + (double)(stop.tv_usec)) - \
      ((double)(start.tv_sec * 1000000.0) + (double)(start.tv_usec ))) 
 
-enum {
-    NUM_WORDS = 10240,
-    LENGTH_WORDS = 10,
+#define timer_diff_sec(start, stop) \
+    (((double)(stop.tv_sec)  + (double)(stop.tv_usec / 1000000.0)) - \
+     ((double)(start.tv_sec) + (double)(start.tv_usec / 1000000.0))) 
+
+enum input_params {
+    N_THREADS = 0,
+    N_BUCKETS = 1,
+    N_WORDS = 2,
+    WORD_SIZE = 3,
+    N_PARAMS,
 };
+
+int global_params[N_PARAMS];
 
 hashtable_t *global_ht = NULL;
 
@@ -34,10 +43,10 @@ void rand_str(char *dest, size_t length) {
 void hello_from_thread(void *arg)
 {
     //    long id = get_thread_id();
-    char array_words[NUM_WORDS][LENGTH_WORDS];
+    char array_words[global_params[N_WORDS]] [global_params[WORD_SIZE]];
 
-    for (int i = 0; i < NUM_WORDS; i++) {
-        rand_str(array_words[i], LENGTH_WORDS);
+    for (int i = 0; i < global_params[N_WORDS]/global_params[N_THREADS]; i++) {
+        rand_str(array_words[i], global_params[WORD_SIZE]);
         __transaction_atomic {
             tm_hashtable_insert(global_ht, array_words[i], array_words[i]);
         }
@@ -58,11 +67,66 @@ unsigned long hash(const void *key)
     return hash_val;
 }
 
+void parse_arg(int argc, char **argv)
+{
+    int opt = 0;
+
+    global_params[N_THREADS] = 1;
+    global_params[N_BUCKETS] = 10;
+    global_params[N_WORDS] = 10;
+    global_params[WORD_SIZE] = 10;
+
+    /*
+     * w - number of words
+     * s - word size
+     * b - number of buckets
+     * t - number of threads
+     * h - print help
+     */
+    opterr = 0;
+    while((opt = getopt(argc, argv, "b:t:w:s:h")) != -1) {
+        switch(opt) {
+        case 'b':
+            global_params[N_BUCKETS] = atoi(optarg);
+            break;
+        case 't':
+            global_params[N_THREADS] = atoi(optarg);
+            break;
+        case 'w':
+            global_params[N_WORDS] = atoi(optarg);
+            break;
+        case 's':
+            global_params[WORD_SIZE] = atoi(optarg);
+            break;
+        case 'h':
+            printf("./1_tm.out -b <BUCKETS> -w <WORDS> -s <WORD_SIZE> -t <THREADS>\n");
+            printf("Print this help: ./1_tm.out -h \n");
+            exit(EXIT_SUCCESS);
+            break;
+        case '?':
+        default:
+            fprintf(stderr, "unknown parameter: %c\n", opt);
+            opterr++;
+            break;
+        }
+    }
+
+    if (opterr != 0) {
+        fprintf(stderr, "Uncorrected parameters\n");
+        exit(EXIT_FAILURE);
+    }
+
+}
+
 int main(int argc, char **argv)
 {
     timer_t start, stop;
-    thread_pool_t *pool = thread_pool_init(atoi(argv[1]));
-    global_ht = tm_hashtable_alloc(10, hash);
+    thread_pool_t *pool;
+    
+    parse_arg(argc, argv);
+
+    pool = thread_pool_init(global_params[N_THREADS]);
+    global_ht = tm_hashtable_alloc(global_params[N_BUCKETS], hash);
 
     pool_startup(pool);
     
@@ -74,9 +138,10 @@ int main(int argc, char **argv)
     //    tm_hashtable_print(global_ht);
     long total_size = tm_hashtable_total_size(global_ht);
     printf("The status of test is %s\n",
-           (total_size == atoi(argv[1]) * NUM_WORDS) ? "true" : "false");
+           (total_size == global_params[N_WORDS]) ?
+           "true" : "false");
     printf("The hashtable size is %ld\n", total_size);
-    printf("Total time: %f\n", timer_diff_usec(start, stop));
+    printf("Total time: %f\n", timer_diff_sec(start, stop));
 
     thread_pool_finalize(pool);
     return 0;
