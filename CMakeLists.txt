@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)      # Проверка версии CMake.
                                          # старее указаной, произайдёт аварийный выход.
 
 project(testing_thread_pool)             # Название проекта
-#set(CMAKE_C_COMPILER  "/home/ikulagin/workspace/gcc-5.0/bin/gcc")
+set(CMAKE_C_COMPILER  "/home/ikulagin/workspace/tm_exampls/test_hash/bin/gcc_tm_prof")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread -std=gnu1x -Wall -I${CMAKE_CURRENT_SOURCE_DIR}")
 
 set(SOURCE_TM_EXE 1_tm.c)                      # Установка переменной со списком исходников для исполняемого файла

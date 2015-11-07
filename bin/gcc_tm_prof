@@ -1,0 +1,1 @@
+gcc  -fplugin=/home/ikulagin/workspace/tm_exampls/test_hash/lib/libtm_prof_instumentation.so -L/home/ikulagin/workspace/tm_exampls/test_hash/lib -ltm_prof $@
