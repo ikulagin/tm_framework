@@ -13,8 +13,8 @@
      ((double)(start.tv_sec * 1000000.0) + (double)(start.tv_usec ))) 
 
 enum {
-    NUM_WORDS = 10240,
-    LENGTH_WORDS = 10,
+    NUM_WORDS = 10000,
+    LENGTH_WORDS = 1000,
 };
 
 hashtable_t *global_ht = NULL;
@@ -34,10 +34,12 @@ void rand_str(char *dest, size_t length) {
 void hello_from_thread(void *arg)
 {
     //    long id = get_thread_id();
+    printf("%s:%d\n", __func__, __LINE__);
     char array_words[NUM_WORDS][LENGTH_WORDS];
-
+    printf("%s:%d\n", __func__, __LINE__);
     for (int i = 0; i < NUM_WORDS; i++) {
         rand_str(array_words[i], LENGTH_WORDS);
+        printf("i = %d\n", i);
         tm_hashtable_insert(global_ht, array_words[i], array_words[i]);
     }
 }
