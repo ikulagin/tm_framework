@@ -1,0 +1,19 @@
+thread_pool_objects = thread_pool.o
+
+VPATH = @srcdir@
+srcdir = @srcdir@ 
+
+CC = @CC@
+CFLAGS += -Wall -pthread
+
+TARGETS = libthread_pool.a
+
+.PHONY: all $(TARGETS)
+
+all: $(TARGETS)
+
+libthread_pool.a: $(thread_pool_objects)
+		$(AR) $(ARFLAGS) $@ $^
+
+%.o: %.c
+		$(CC) $(CFLAGS) -o $@ -c $<

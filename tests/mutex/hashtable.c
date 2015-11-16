@@ -2,8 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "hashtable_mutex.h"
-#include "list_mutex.h"
+#include "hashtable.h"
+#include "list.h"
 
 struct hashtable_s {
     list_t **buckets;

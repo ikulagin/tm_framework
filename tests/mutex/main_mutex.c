@@ -4,7 +4,7 @@
 #include <sys/time.h>
 
 #include "thread_pool.h"
-#include "hashtable_mutex.h"
+#include "hashtable.h"
 
 #define timer_t struct timeval
 #define timer_read(t) gettimeofday( &(t), NULL);

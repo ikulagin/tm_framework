@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "list_mutex.h"
+#include "list.h"
 
 typedef struct list_node_s {
     void *dataPtr;
