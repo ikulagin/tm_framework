@@ -1,0 +1,16 @@
+VPATH = @srcdir@
+srcdir = @srcdir@ 
+
+CC = @CC@
+CFLAGS += -Wall -fPIC -shared
+
+TARGETS = libtm_prof.so
+
+sources = tm_prof_main.c
+
+.PHONY: all $(TARGETS)
+
+all: $(TARGETS)
+
+libtm_prof.so: $(sources)
+		$(CC) $(CFLAGS) -o $@ $<

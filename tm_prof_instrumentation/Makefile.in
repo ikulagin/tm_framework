@@ -1,0 +1,17 @@
+VPATH = @srcdir@
+srcdir = @srcdir@ 
+
+CXX = @CXX@
+CXXFLAGS += -Wall -fPIC -shared -fno-rtti -I`$(CXX) -print-file-name=plugin`/include
+
+TARGETS = tm_prof_instrumentation.so
+
+sources = tm_prof_instrumentation.cpp
+
+.PHONY: all $(TARGETS)
+
+all: $(TARGETS)
+
+tm_prof_instrumentation.so: $(sources)
+		$(CXX) $(CXXFLAGS) -o $@ $<
+

@@ -1,0 +1,32 @@
+VPATH = @srcdir@
+srcdir = @srcdir@ 
+top_build_dir = @top_builddir@
+top_src_dir = @top_srcdir@
+
+CC = @CC@
+CFLAGS += -Wall
+
+test_tm_objects = hashtable.o list.o main_mutex.o
+
+thread_pool_include = $(top_src_dir)/thread_pool
+CFLAGS += -I$(thread_pool_include)
+
+LDFLAGS += -Wall -pthread
+
+thread_pool_path = $(top_build_dir)/thread_pool
+libraries_path = -L$(thread_pool_path)
+libraries = -lthread_pool
+
+LDFLAGS += $(libraries_path)
+
+TARGETS = test_mutex.out
+
+.PHONY: all $(TARGETS)
+
+all: $(TARGETS)
+
+test_mutex.out: $(test_tm_objects)
+		$(CC) $(LDFLAGS) -o $@ $^ $(libraries)
+
+%.o: %.c
+		$(CC) $(CFLAGS) -o $@ -c $<

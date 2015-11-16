@@ -1,0 +1,12 @@
+LIBS = thread_pool
+TESTS = stm mutex
+
+.PHONY: $(LIBS) $(TESTS)
+
+all: $(LIBS) $(TESTS)
+
+$(LIBS):
+		$(MAKE) -C $@ all
+
+$(TESTS):
+		$(MAKE) -C $@ all
