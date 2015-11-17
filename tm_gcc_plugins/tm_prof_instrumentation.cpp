@@ -30,7 +30,6 @@
 #include "tree-pretty-print.h"
 #include "gimple-walk.h"
 #include "cgraph.h"
-#include "cp/name-lookup.h"
 
 int plugin_is_GPL_compatible;
 

@@ -1,9 +1,6 @@
 #include "gcc-plugin.h"
-#include "c-family/c-common.h"
 #include "config.h"
-#include "system.h"
 #include "coretypes.h"
-#include "tm.h"
 #include "tree.h"
 #include "stringpool.h"
 #include "toplev.h"
@@ -30,7 +27,10 @@
 #include "tree-pretty-print.h"
 #include "gimple-walk.h"
 #include "cgraph.h"
-#include "cp/name-lookup.h"
+#include "gimple-ssa.h"
+#include "tree-phinodes.h"
+#include "ssa-iterators.h"
+#include "tree-ssanames.h"
 
 int plugin_is_GPL_compatible;
 
@@ -60,129 +60,91 @@ class pass_tm_analyze : public gimple_opt_pass
     virtual unsigned int execute (function *);
 }; 
 
-int get_size_operated_mem(int fn_code)
+// tree type = TREE_TYPE(arg);
+// tcode = TREE_CODE(type);
+// printf(" -> arg.type code = %s ", get_tree_code_name(tcode));
+// if (tcode == POINTER_TYPE) {
+//     type = TREE_TYPE(type);
+//     tcode = TREE_CODE(type);
+//     printf(" -> arg.type[pointer].type code = %s ", get_tree_code_name(tcode));
+// }
+// print_generic_expr(stdout, type, TDF_RAW | TDF_DETAILS);
+// printf(" | ");
+// print_generic_expr(stdout, arg, TDF_RAW | TDF_DETAILS);        
+//        if (type != NULL_TREE)
+//            printf("type = %s", type_name(arg));
+
+// while (arg && (TREE_CODE(arg) == SSA_NAME)) {
+//     gimple ssa_stmt = SSA_NAME_DEF_STMT(arg);
+//     printf(" def_stmt_code = %s\n", gimple_code_name[gimple_code(ssa_stmt)]);
+//     arg = NULL;
+// }
+
+
+// tree type = TREE_TYPE(arg);
+// if (type == NULL)
+//     printf("type is NULL ");
+// print_generic_expr(stdout, type, TDF_RAW | TDF_DETAILS);
+
+void print_arg(tree arg)
 {
-    switch(fn_code) {
-    case BUILT_IN_TM_STORE_1:
-    case BUILT_IN_TM_STORE_WAR_1:
-    case BUILT_IN_TM_STORE_WAW_1:
-    case BUILT_IN_TM_LOAD_1:
-    case BUILT_IN_TM_LOAD_RAR_1:
-    case BUILT_IN_TM_LOAD_RAW_1:
-    case BUILT_IN_TM_LOAD_RFW_1:
-        return 1;
-
-    case BUILT_IN_TM_STORE_2:
-    case BUILT_IN_TM_STORE_WAR_2:
-    case BUILT_IN_TM_STORE_WAW_2:
-    case BUILT_IN_TM_LOAD_2:
-    case BUILT_IN_TM_LOAD_RAR_2:
-    case BUILT_IN_TM_LOAD_RAW_2:
-    case BUILT_IN_TM_LOAD_RFW_2:
-        return 2;
-
-    case BUILT_IN_TM_STORE_4:
-    case BUILT_IN_TM_STORE_WAR_4:
-    case BUILT_IN_TM_STORE_WAW_4:
-    case BUILT_IN_TM_LOAD_4:
-    case BUILT_IN_TM_LOAD_RAR_4:
-    case BUILT_IN_TM_LOAD_RAW_4:
-    case BUILT_IN_TM_LOAD_RFW_4:
-        return 4;
-
-    case BUILT_IN_TM_STORE_8:
-    case BUILT_IN_TM_STORE_WAR_8:
-    case BUILT_IN_TM_STORE_WAW_8:
-    case BUILT_IN_TM_LOAD_8:
-    case BUILT_IN_TM_LOAD_RAR_8:
-    case BUILT_IN_TM_LOAD_RAW_8:
-    case BUILT_IN_TM_LOAD_RFW_8:
-        return 8;
-
-    case BUILT_IN_TM_STORE_FLOAT:
-    case BUILT_IN_TM_STORE_WAR_FLOAT:
-    case BUILT_IN_TM_STORE_WAW_FLOAT:
-    case BUILT_IN_TM_LOAD_FLOAT:
-    case BUILT_IN_TM_LOAD_RAR_FLOAT:
-    case BUILT_IN_TM_LOAD_RAW_FLOAT:
-    case BUILT_IN_TM_LOAD_RFW_FLOAT:
-        return sizeof(float);
-
-    case BUILT_IN_TM_STORE_DOUBLE:
-    case BUILT_IN_TM_STORE_WAR_DOUBLE:
-    case BUILT_IN_TM_STORE_WAW_DOUBLE:
-    case BUILT_IN_TM_LOAD_DOUBLE:
-    case BUILT_IN_TM_LOAD_RAR_DOUBLE:
-    case BUILT_IN_TM_LOAD_RAW_DOUBLE:
-    case BUILT_IN_TM_LOAD_RFW_DOUBLE:
-        return sizeof(double);
-
-    case BUILT_IN_TM_STORE_LDOUBLE:
-    case BUILT_IN_TM_STORE_WAR_LDOUBLE:
-    case BUILT_IN_TM_STORE_WAW_LDOUBLE:
-    case BUILT_IN_TM_LOAD_LDOUBLE:
-    case BUILT_IN_TM_LOAD_RAR_LDOUBLE:
-    case BUILT_IN_TM_LOAD_RAW_LDOUBLE:
-    case BUILT_IN_TM_LOAD_RFW_LDOUBLE:
-        return sizeof(long double);
-
-    case BUILT_IN_TM_STORE_M64:
-    case BUILT_IN_TM_STORE_WAR_M64:
-    case BUILT_IN_TM_STORE_WAW_M64:
-    case BUILT_IN_TM_LOAD_M64:
-    case BUILT_IN_TM_LOAD_RAR_M64:
-    case BUILT_IN_TM_LOAD_RAW_M64:
-    case BUILT_IN_TM_LOAD_RFW_M64:
-        return 64;
-
-    case BUILT_IN_TM_STORE_M128:
-    case BUILT_IN_TM_STORE_WAR_M128:
-    case BUILT_IN_TM_STORE_WAW_M128:
-    case BUILT_IN_TM_LOAD_M128:
-    case BUILT_IN_TM_LOAD_RAR_M128:
-    case BUILT_IN_TM_LOAD_RAW_M128:
-    case BUILT_IN_TM_LOAD_RFW_M128:
-        return 128;
-
-    case BUILT_IN_TM_STORE_M256:
-    case BUILT_IN_TM_STORE_WAR_M256:
-    case BUILT_IN_TM_STORE_WAW_M256:
-    case BUILT_IN_TM_LOAD_M256:
-    case BUILT_IN_TM_LOAD_RAR_M256:
-    case BUILT_IN_TM_LOAD_RAW_M256:
-    case BUILT_IN_TM_LOAD_RFW_M256:
-        return 256;
+    if (arg == NULL) {
+        printf("NULL ");
+        return ;
     }
-    
-    return 0;
+    print_generic_stmt(stdout, arg, TDF_RAW | TDF_DETAILS);
 }
 
-gimple create_tm_prof_begin()
+void process_arg(tree arg)
 {
-    tree fn_type = build_function_type_list(void_type_node, NULL_TREE);
-    tree fn_decl = build_fn_decl("tm_prof_begin", fn_type);
-    gimple stmt = gimple_build_call(fn_decl, 0);
-
-    return stmt;
-}
-
-gimple create_tm_prof_operation(int size)
-{
-    tree fn_type = build_function_type_list(void_type_node, integer_type_node, NULL_TREE);
-    tree size_mem_cst = build_int_cst(integer_type_node, size);
-    tree fn_decl = build_fn_decl("tm_prof_operation", fn_type);
-    gimple stmt = gimple_build_call(fn_decl, 1, size_mem_cst);
-
-    return stmt;
+    if (arg == NULL)
+        return;
+        
+    enum tree_code tcode = TREE_CODE(arg);
+    printf(" -> arg.type code = %s ", get_tree_code_name(tcode));
+ 
+    if (tcode == SSA_NAME) {
+        gimple stmt = SSA_NAME_DEF_STMT(arg);
+        if (is_gimple_assign (stmt)) {
+            tree right = gimple_assign_rhs1(stmt);
+            process_arg(right);
+        } else {
+            printf("no assign [%s] ", gimple_code_name[gimple_code(stmt)]);
+        }
+    } else if (tcode == ADDR_EXPR) {
+        tree x = TREE_OPERAND(arg, 0);
+        process_arg(x);
+    } else if (tcode == COMPONENT_REF){
+        print_arg(arg);
+        tree zero = TREE_OPERAND(arg, 0);
+        printf("\n\tzero ");
+        print_arg(zero);
+        process_arg(zero);
+        tree one = TREE_OPERAND(arg, 1);
+        printf("\n\tone ");
+        print_arg(one);
+        process_arg(one);
+        tree two = TREE_OPERAND(arg, 2);
+        printf("\n\ttwo ");
+        print_arg(two);
+        process_arg(two);
+    }
 }
 
 unsigned int 
 pass_tm_analyze::execute(struct function *fun)
 {
     basic_block bb;
-    gimple tm_prof_begin;
-    gimple tm_prof_operation;
     gimple_stmt_iterator gsi;
+
+    // unsigned ssa_names_count = SSANAMES(fun)->length();
+
+    // for (unsigned i = 0; i < ssa_names_count; i++) {
+    //     printf("ssa_name[%u] = ", i);
+    //     print_generic_expr(stdout, (*SSANAMES(fun))[i], TDF_RAW | TDF_DETAILS);
+    //     printf("\n");
+    // }
+
 
     printf("%s entry\n", function_name(fun));
     FOR_EACH_BB_FN(bb, fun) {
@@ -191,35 +153,58 @@ pass_tm_analyze::execute(struct function *fun)
             enum gimple_code stmt_code = gimple_code(stmt);
             if (stmt_code == GIMPLE_CALL) {
                 tree fn_decl = gimple_call_fndecl(stmt);
-                if (fn_decl &&
-                    DECL_BUILT_IN_CLASS (fn_decl) == BUILT_IN_NORMAL) {
-                    int fn_code = DECL_FUNCTION_CODE(fn_decl);
-                    switch (fn_code) {
-                    case BUILT_IN_TM_START:
-                        print_gimple_stmt(stderr, stmt, 0, 0);
-                        tm_prof_begin = create_tm_prof_begin();
-                        gsi_insert_after(&gsi, tm_prof_begin, GSI_NEW_STMT);
-                        break;
-                    case BUILT_IN_TM_COMMIT:
-                        print_gimple_stmt(stderr, stmt, 0, 0);
-                        break;
-                    case BUILT_IN_TM_COMMIT_EH:
-                        print_gimple_stmt(stderr, stmt, 0, 0);
-                        break;
-                    default:
-                        if (BUILTIN_TM_LOAD_P(fn_code) || BUILTIN_TM_STORE_P(fn_code)) {
-                            printf("sizeof(mem) = %d\n", get_size_operated_mem(fn_code));
-                            tm_prof_operation = create_tm_prof_operation(get_size_operated_mem(fn_code));
-                            gsi_insert_after(&gsi, tm_prof_operation, GSI_NEW_STMT);                            
-                            print_gimple_stmt(stderr, stmt, 0, 0);
-                        }
-                        break;
-                    }
-                }
+                if (!fn_decl ||
+                    (DECL_BUILT_IN_CLASS (fn_decl) != BUILT_IN_NORMAL))
+                    continue;
 
+                int fn_code = DECL_FUNCTION_CODE(fn_decl);
+                if (!BUILTIN_TM_LOAD_P(fn_code) && !BUILTIN_TM_STORE_P(fn_code))
+                    continue;
+                gcall* tm_call = as_a<gcall *>(stmt);
+                printf("find\n");
+                print_gimple_stmt(stdout, tm_call, 0, 0);
+
+                tree arg = gimple_call_arg(tm_call, 0);
+                printf("arg code %s | ", get_tree_code_name(TREE_CODE(arg)));
+                print_generic_stmt(stdout, arg, TDF_RAW | TDF_DETAILS);
+                printf("\n");
+                process_arg(arg);
+                printf("\n");
+                // ssa_op_iter i;
+                // use_operand_p use_p;
+                // def_operand_p def_p;
+                // FOR_EACH_SSA_USE_OPERAND (use_p, stmt, i, SSA_OP_ALL_USES) {
+                //     tree use = USE_FROM_PTR (use_p);
+                //     printf("%s:%d use ", __func__, __LINE__);
+                //     if (!is_gimple_reg(use))
+                //         printf("virtual ");
+                //     else
+                //         printf("real ");
+                //     printf("%s ", get_tree_code_name(TREE_CODE(use)));
+                //     print_generic_expr(stdout, use, TDF_RAW | TDF_DETAILS);
+                //     gimple def_stmt = SSA_NAME_DEF_STMT(use);
+                //     printf(" | def stmt code = %s", gimple_code_name[gimple_code(def_stmt)]);
+                //     printf("\n");
+                //     process_arg(use);
+                //     printf("\n");
+                // }
+
+                // FOR_EACH_SSA_DEF_OPERAND (def_p, stmt, i, SSA_OP_ALL_DEFS) {
+                //     tree def = DEF_FROM_PTR (def_p);
+                //     printf("%s:%d def ", __func__, __LINE__);
+                //     if (!is_gimple_reg(def))
+                //         printf("virtual ");
+                //     else
+                //         printf("real ");
+                //     printf("%s ", get_tree_code_name(TREE_CODE(def)));
+                //     print_generic_expr(stdout, def, TDF_RAW | TDF_DETAILS);
+                //     printf("\n");
+                // }            
             }
+            
         }
     }
+
     printf("%s exit\n", function_name(fun));
 
     return 0;
