@@ -1,5 +1,6 @@
 LIBS = thread_pool
 TESTS = stm mutex
+CLEAN_ALL = $(addsuffix .clean, $(LIBS) $(TESTS))
 
 .PHONY: $(LIBS) $(TESTS)
 
@@ -10,3 +11,7 @@ $(LIBS):
 
 $(TESTS):
 		$(MAKE) -C $@ all
+
+clean: $(CLEAN_ALL)
+$(CLEAN_ALL):
+		$(MAKE) -C $(basename $@) clean

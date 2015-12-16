@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 #include <sys/time.h>
 
 #include "thread_pool.h"
@@ -33,7 +34,7 @@ void rand_str(char *dest, size_t length) {
         "abcdefghijklmnopqrstuvwxyz"
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-    while (length-- > 0) {
+    while (length-- > 1) {
         size_t index = (double) rand() / RAND_MAX * (sizeof charset - 1);
         *dest++ = charset[index];
     }
@@ -43,7 +44,17 @@ void rand_str(char *dest, size_t length) {
 void hello_from_thread(void *arg)
 {
     //    long id = get_thread_id();
-    char array_words[global_params[N_WORDS]] [global_params[WORD_SIZE]];
+    char **array_words = NULL;
+    int n_words_per_thread = global_params[N_WORDS]/global_params[N_THREADS];
+
+    array_words = (char **) calloc(sizeof(char *), n_words_per_thread);
+    if (array_words == NULL)
+        goto malloc_error;
+    for (int i = 0; i < n_words_per_thread; i++) {
+        array_words[i] = (char *) calloc(sizeof(char), global_params[WORD_SIZE]);
+        if (array_words[i] == NULL)
+            goto malloc_error;
+    }
 
     for (int i = 0; i < global_params[N_WORDS]/global_params[N_THREADS]; i++) {
         rand_str(array_words[i], global_params[WORD_SIZE]);
@@ -51,6 +62,19 @@ void hello_from_thread(void *arg)
             tm_hashtable_insert(global_ht, array_words[i], array_words[i]);
         }
     }
+    
+    for (int i = 0; i < n_words_per_thread; i++)
+        free(array_words[i]);
+    free(array_words);
+
+    return ;
+ malloc_error:
+    fprintf(stderr, "malloc error\n");
+    if (array_words)
+        for (int i = 0; i < n_words_per_thread; i++)
+            if (array_words[i]) free(array_words[i]);
+    free(array_words);
+    exit(EXIT_FAILURE);
 }
 
 __attribute__((transaction_safe))
@@ -144,5 +168,6 @@ int main(int argc, char **argv)
     printf("Total time: %f\n", timer_diff_sec(start, stop));
 
     thread_pool_finalize(pool);
+
     return 0;
 }
