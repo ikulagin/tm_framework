@@ -17,3 +17,6 @@ libthread_pool.a: $(thread_pool_objects)
 
 %.o: %.c
 		$(CC) $(CFLAGS) -o $@ -c $<
+
+clean:
+		rm -rf $(thread_pool_objects) $(TARGETS)

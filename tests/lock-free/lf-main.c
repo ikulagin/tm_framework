@@ -5,7 +5,7 @@
 #include <sys/time.h>
 
 #include "thread_pool.h"
-#include "hashtable.h"
+#include "lf-hashtable.h"
 
 #define timer_t struct timeval
 #define timer_read(t) gettimeofday( &(t), NULL);
@@ -27,7 +27,7 @@ enum input_params {
 
 int global_params[N_PARAMS];
 
-hashtable_t *global_ht = NULL;
+lf_hashtable_t *global_ht = NULL;
 
 void rand_str(char *dest, size_t length) {
     char charset[] = "0123456789"
@@ -57,7 +57,8 @@ void hello_from_thread(void *arg)
 
     for (int i = 0; i < n_words_per_thread; i++) {
         rand_str(array_words[i], global_params[WORD_SIZE]);
-        tm_hashtable_insert(global_ht, array_words[i], array_words[i]);
+        lf_hashtable_insert(global_ht, array_words[i], array_words[i],
+                            sizeof(char) * global_params[WORD_SIZE]);
     }
 
 
@@ -147,7 +148,7 @@ int main(int argc, char **argv)
     parse_arg(argc, argv);
 
     pool = thread_pool_init(global_params[N_THREADS]);
-    global_ht = tm_hashtable_alloc(global_params[N_BUCKETS], hash);
+    global_ht = lf_hashtable_create(global_params[N_BUCKETS], hash);
 
     pool_startup(pool);
     
@@ -157,13 +158,14 @@ int main(int argc, char **argv)
 
     pool_shutdown_thread(pool);
     //    tm_hashtable_print(global_ht);
-    long total_size = tm_hashtable_total_size(global_ht);
+    long total_size = lf_hashtable_total_size(global_ht);
     printf("The status of test is %s\n",
            (total_size == global_params[N_WORDS]) ?
            "true" : "false");
     printf("The hashtable size is %ld\n", total_size);
     printf("Total time: %f\n", timer_diff_sec(start, stop));
 
+    lf_hashtable_delete(global_ht);
     thread_pool_finalize(pool);
 
     return 0;

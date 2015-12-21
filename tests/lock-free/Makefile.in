@@ -6,7 +6,7 @@ top_src_dir = @top_srcdir@
 CC = @CC@
 CFLAGS += -Wall
 
-test_mutex_objects = hashtable.o list.o main_mutex.o
+test_lf_objects = lf-list.o lf-hashtable.o lf-main.o
 
 thread_pool_include = $(top_src_dir)/thread_pool
 CFLAGS += -I$(thread_pool_include)
@@ -19,16 +19,16 @@ libraries = -lthread_pool
 
 LDFLAGS += $(libraries_path)
 
-TARGETS = test_mutex.out
+TARGETS = test_lf.out
 
 .PHONY: all $(TARGETS)
 
 all: $(TARGETS)
 
-test_mutex.out: $(test_mutex_objects)
+test_lf.out: $(test_lf_objects)
 		$(CC) $(LDFLAGS) -o $@ $^ $(libraries)
 
 %.o: %.c
 		$(CC) $(CFLAGS) -o $@ -c $<
 clean:
-		rm -rf $(TARGETS) $(test_mutex_objects)
+		rm -rf $(TARGETS) $(test_lf_objects)
