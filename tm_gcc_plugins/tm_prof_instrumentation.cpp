@@ -30,7 +30,6 @@
 #include "tree-pretty-print.h"
 #include "gimple-walk.h"
 #include "cgraph.h"
-#include "cp/name-lookup.h"
 
 int plugin_is_GPL_compatible;
 
@@ -47,7 +46,7 @@ extern struct ht *ident_hash;
 const pass_data pass_data_tm_analyze =
     {
         GIMPLE_PASS, /* type */
-        "tm_analyze", /* name */
+        "tm_instrumentation", /* name */
         OPTGROUP_INLINE, /* optinfo_flags */
         TV_NONE, /* tv_id */
         PROP_trees, /* properties_required */

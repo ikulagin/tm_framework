@@ -4,14 +4,16 @@ srcdir = @srcdir@
 CXX = @CXX@
 CXXFLAGS += -Wall -fPIC -shared -fno-rtti -I`$(CXX) -print-file-name=plugin`/include
 
-TARGETS = tm_prof_instrumentation.so
+TARGETS = tm_prof_instrumentation.so tm_analyzer.so
 
-sources = tm_prof_instrumentation.cpp
+
 
 .PHONY: all $(TARGETS)
 
 all: $(TARGETS)
 
-tm_prof_instrumentation.so: $(sources)
+tm_prof_instrumentation.so: tm_prof_instrumentation.cpp
 		$(CXX) $(CXXFLAGS) -o $@ $<
 
+tm_analyzer.so: tm_analyzer.cpp
+		$(CXX) $(CXXFLAGS) -o $@ $<
