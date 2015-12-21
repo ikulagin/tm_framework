@@ -1,5 +1,5 @@
 LIBS = thread_pool
-TESTS = stm mutex
+TESTS = stm mutex lock-free
 CLEAN_ALL = $(addsuffix .clean, $(LIBS) $(TESTS))
 
 .PHONY: $(LIBS) $(TESTS)
