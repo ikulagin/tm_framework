@@ -212,12 +212,12 @@ void *actor_runner(void *arg)
         while ((data = vector_pop_back(v)) != NULL) {
             if (*data == -1) {
                 exit = 1;
-                
             } else {
                 buf[*data]++;
             }
             free(data);
         }
+        vector_delete(v);
         if (exit)
             break;
     }
