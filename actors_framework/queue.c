@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <string.h>
 
+#include "queue.h"
+
 struct vector_s {
     int size;
     int tail;

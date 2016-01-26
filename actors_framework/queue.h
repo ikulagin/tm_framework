@@ -1,6 +1,10 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
+enum {
+    QUEUE_BUF_SIZE = 1024,
+};
+
 typedef struct vector_s vector_t;
 typedef struct queue_cycl_s queue_cycl_t;
 
