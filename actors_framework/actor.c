@@ -12,12 +12,13 @@ struct actor_s {
     queue_cycl_t *q;
     action handler;
     char is_finish;
+    actor_data_dtor d_dtor;
     void *params;
 };
 
 static void *actor_runner(void *arg);
 
-actor_t *actor_spawn(void **p, action h)
+actor_t *actor_spawn(void **p, action h, actor_data_dtor d_dtor)
 {
     actor_t *a = (actor_t *)calloc(1, sizeof(actor_t));
 
@@ -34,6 +35,7 @@ actor_t *actor_spawn(void **p, action h)
 
     a->handler = h;
     a->is_finish = 0;
+    a->d_dtor = d_dtor;
 
     pthread_create(&a->thread, NULL, actor_runner, a);
 
@@ -52,7 +54,7 @@ void actor_send_msg(actor_t *a, actor_msg_t *msg)
     pthread_mutex_unlock(&a->m);
 }
 
-actor_msg_t *actor_msg_create(int type)
+actor_msg_t *actor_msg_create(int type, msg_dtor m_dtor)
 {
     actor_msg_t *msg = NULL;
 
@@ -60,6 +62,7 @@ actor_msg_t *actor_msg_create(int type)
     if (msg == NULL)
         goto actor_msg_create_err;
     msg->type = type;
+    msg->m_dtor = m_dtor;
     
     return msg;
  actor_msg_create_err:
@@ -91,10 +94,14 @@ static void *actor_runner(void *arg)
         actor_msg_t *msg = NULL;
         while ((msg = vector_pop_back(v)) != NULL) {
             iam->handler(iam, iam->params, msg);
-            free(msg);
+            if (msg->m_dtor)
+                msg->m_dtor(msg);
         }
         vector_delete(v);
     }
+    
+    if (iam->d_dtor && iam->params)
+        iam->d_dtor(iam->params);
     
     return NULL;
 }

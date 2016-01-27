@@ -31,7 +31,7 @@ producer_data_t *producer_data_ctor(actor_t *a, int n)
     
     return d;
 }
-void producer_data_dtor(producer_data_t *d)
+void producer_data_dtor(void *d)
 {
     free(d);
 }
@@ -66,37 +66,63 @@ void actor_producer(actor_t *iam, void *param, actor_msg_t *msg)
 /*
  * Messages begin
  */
+void msg_actor_exit_dtor(actor_msg_t *m);
+void msg_increment_dtor(actor_msg_t *m);
+void msg_producer_begin_dtor(actor_msg_t *m);
+
 actor_msg_t *msg_producer_begin()
 {
-    actor_msg_t *msg = actor_msg_create(MSG_PRODUCE);
+    actor_msg_t *msg = actor_msg_create(MSG_PRODUCE, msg_producer_begin_dtor);
     msg->data = NULL;
 
     return msg;
+}
+
+void msg_producer_begin_dtor(actor_msg_t *m)
+{
+    free(m->data);
+    free(m);
 }
 
 actor_msg_t *msg_increment()
 {
-    actor_msg_t *msg = actor_msg_create(MSG_INCREMENT);
+    actor_msg_t *msg = actor_msg_create(MSG_INCREMENT, msg_increment_dtor);
     msg->data = NULL;
 
     return msg;
+}
+
+void msg_increment_dtor(actor_msg_t *m)
+{
+    free(m->data);
+    free(m);
 }
 
 actor_msg_t *msg_actor_exit()
 {
-    actor_msg_t *msg = actor_msg_create(MSG_EXIT);
+    actor_msg_t *msg = actor_msg_create(MSG_EXIT, msg_actor_exit_dtor);
     msg->data = NULL;
 
     return msg;
 }
 
+void msg_actor_exit_dtor(actor_msg_t *m)
+{
+    free(m->data);
+    free(m);
+}
+
 int main()
 {
-    actor_t *incrementer = actor_spawn(NULL, actor_incrementer);
+    actor_t *incrementer = actor_spawn(NULL, actor_incrementer, NULL);
     producer_data_t *p_data1 = producer_data_ctor(incrementer, 1024);
     producer_data_t *p_data2 = producer_data_ctor(incrementer, 1024);
-    actor_t *producer1 = actor_spawn((void **)&p_data1, actor_producer);
-    actor_t *producer2 = actor_spawn((void **)&p_data2, actor_producer);
+    actor_t *producer1 = actor_spawn((void **)&p_data1,
+                                     actor_producer,
+                                     producer_data_dtor);
+    actor_t *producer2 = actor_spawn((void **)&p_data2,
+                                     actor_producer,
+                                     producer_data_dtor);
     actor_send_msg(producer1, msg_producer_begin());
     actor_send_msg(producer2, msg_producer_begin());
     actor_join(producer1);
