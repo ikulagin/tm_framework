@@ -2,7 +2,7 @@
 #define QUEUE_H
 
 enum {
-    QUEUE_BUF_SIZE = 1024,
+    QUEUE_BUF_SIZE = 4096,
 };
 
 typedef struct vector_s vector_t;

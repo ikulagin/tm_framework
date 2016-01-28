@@ -17,6 +17,7 @@ struct actor_s {
 };
 
 static void *actor_runner(void *arg);
+static void actor_delete(actor_t *a);
 
 actor_t *actor_spawn(void **p, action h, actor_data_dtor d_dtor)
 {
@@ -46,6 +47,11 @@ actor_t *actor_spawn(void **p, action h, actor_data_dtor d_dtor)
     exit(EXIT_FAILURE);
 }
 
+
+/*
+ * TODO: In case of the overflowing queue the sender
+ *       needs to wait the emptying queue.
+ */
 void actor_send_msg(actor_t *a, actor_msg_t *msg)
 {
     pthread_mutex_lock(&a->m);
@@ -78,6 +84,7 @@ void actor_mark_as_finished(actor_t *a)
 void actor_join(actor_t *a)
 {
     pthread_join(a->thread, NULL);
+    actor_delete(a);
 }
 
 static void *actor_runner(void *arg)
@@ -99,10 +106,26 @@ static void *actor_runner(void *arg)
         }
         vector_delete(v);
     }
-    
-    if (iam->d_dtor && iam->params)
-        iam->d_dtor(iam->params);
-    
+
     return NULL;
 }
 
+static void actor_delete(actor_t *a)
+{
+    if (a->d_dtor && a->params)
+        a->d_dtor(a->params);
+
+    pthread_mutex_destroy(&a->m);
+    pthread_cond_destroy(&a->cond);
+    
+    vector_t *v = queue_dequeueall(a->q);
+    actor_msg_t *msg = NULL;
+    while ((msg = vector_pop_back(v)) != NULL) {
+        msg->m_dtor != NULL ? msg->m_dtor(msg) : free(msg);
+    }
+
+    vector_delete(v);
+    queue_delete(a->q);
+
+    free(a);
+}
