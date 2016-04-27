@@ -60,7 +60,9 @@ bool tm_hashtable_insert (hashtable_t *ht_ptr, void *key, void *data)
 {
     unsigned long buck_id = ht_ptr->hash(key) % ht_ptr->num_buckets;
 
-    ht_ptr->size++;
+    __transaction_atomic {
+        ht_ptr->size++;
+    }
     list_insert(ht_ptr->buckets[buck_id], data, tm_strlen(data));
 
     return true;

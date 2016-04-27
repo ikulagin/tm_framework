@@ -6,6 +6,7 @@
 #include "list.h"
 
 struct hashtable_s {
+    pthread_mutex_t lock_ht;
     list_t **buckets;
     long num_buckets;
     long size;
@@ -34,6 +35,7 @@ hashtable_t *tm_hashtable_alloc(long init_num_bucks, hash_fnc hash)
         }
     }
 
+    pthread_mutex_init(&tmp->lock_ht, NULL);
     tmp->num_buckets = init_num_bucks;
     tmp->size = 0;
     tmp->hash = hash;
@@ -50,6 +52,7 @@ void tm_hashtable_free(hashtable_t *ht_ptr)
     ht_ptr->buckets = NULL;
     ht_ptr->size = 0;
     ht_ptr->num_buckets = 0;
+    pthread_mutex_destroy(&ht_ptr->lock_ht);
     free(ht_ptr);
 }
 
@@ -57,7 +60,9 @@ bool tm_hashtable_insert (hashtable_t *ht_ptr, void *key, void *data)
 {
     unsigned long buck_id = ht_ptr->hash(key) % ht_ptr->num_buckets;
 
+    pthread_mutex_lock(&ht_ptr->lock_ht);
     ht_ptr->size++;
+    pthread_mutex_unlock(&ht_ptr->lock_ht);
     list_insert(ht_ptr->buckets[buck_id], data, tm_strlen(data));
 
     return true;

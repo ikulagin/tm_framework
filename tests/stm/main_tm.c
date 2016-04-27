@@ -58,9 +58,7 @@ void hello_from_thread(void *arg)
 
     for (int i = 0; i < global_params[N_WORDS]/global_params[N_THREADS]; i++) {
         rand_str(array_words[i], global_params[WORD_SIZE]);
-        __transaction_atomic {
-            tm_hashtable_insert(global_ht, array_words[i], array_words[i]);
-        }
+        tm_hashtable_insert(global_ht, array_words[i], array_words[i]);
     }
     
     for (int i = 0; i < n_words_per_thread; i++)

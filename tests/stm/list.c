@@ -60,11 +60,14 @@ __attribute__((transaction_safe))
 bool list_insert(list_t *list_ptr, void *data, size_t data_size)
 {
     list_node_t *current = list_node_alloc(data, data_size);
-    list_node_t *next = list_ptr->head;
+    list_node_t *next = NULL;
 
-    current->next = next;
-    list_ptr->head = current;
-    list_ptr->size++;
+    __transaction_atomic {
+        next = list_ptr->head;
+        current->next = next;
+        list_ptr->head = current;
+        list_ptr->size++;
+    }
 
     return true;
 }
